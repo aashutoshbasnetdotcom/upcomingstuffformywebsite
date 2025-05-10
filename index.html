@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Launch Countdown</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tagesschrift&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #000;
+            font-family: "Tagesschrift", system-ui;
+        }
+        canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+        .overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #fff;
+            text-shadow: 0 0 20px #00ff51, 0 0 40px #00ffff;
+            width: 90%;
+            max-width: 1200px;
+        }
+        h1 {
+            font-size: 5vw;
+            margin: 0;
+            animation: glow 2s infinite alternate;
+            background: linear-gradient(45deg, #00ff3c, #00ffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .timer {
+            font-size: 2.5vmin;
+            margin: 2vmin 0;
+            display: flex;
+            justify-content: center;
+            gap: 1.5vmin;
+            flex-wrap: wrap;
+        }
+        .timer div {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 1vmin 1.5vmin;
+            border-radius: 1vmin;
+            border: 1px solid #00ff48;
+            animation: pulse 3s infinite;
+        }
+        p {
+            font-size: 2vmin;
+            margin: 1vmin 0;
+            animation: pulse 3s infinite;
+        }
+        @keyframes glow {
+            from { text-shadow: 0 0 10px #00ffff, 0 0 20px #00ccff; }
+            to { text-shadow: 0 0 20px #1ab524, 0 0 40px #00f2ff; }
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        /* Media Queries for Responsiveness */
+        @media screen and (max-width: 768px) {
+            h1 {
+                font-size: 8vw;
+            }
+            .timer {
+                font-size: 3.5vmin;
+                gap: 2vmin;
+            }
+            .timer div {
+                padding: 1.5vmin 2vmin;
+            }
+            p {
+                font-size: 2.5vmin;
+            }
+        }
+        @media screen and (max-width: 480px) {
+            h1 {
+                font-size: 10vw;
+            }
+            .timer {
+                font-size: 4vmin;
+                flex-direction: column;
+                align-items: center;
+                gap: 2.5vmin;
+            }
+            .timer div {
+                padding: 2vmin 3vmin;
+                width: 50%;
+                text-align: center;
+            }
+            p {
+                font-size: 3vmin;
+            }
+            .overlay {
+                width: 95%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay">
+        <h1>LAUNCHING! In</h1>
+        <div class="timer" id="countdown">
+            <div><span id="days">00</span> Days</div>
+            <div><span id="hours">00</span> Hours</div>
+            <div><span id="minutes">00</span> Minutes</div>
+            <div><span id="seconds">00</span> Seconds</div>
+        </div>
+        <p>18 MAY 2025</p>
+        <p>Prepare for the Ultimate Experience</p>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script>
+        // Countdown Timer Logic
+        const launchDate = new Date('May 18, 2025 00:00:00').getTime();
+        function updateCountdown() {
+            const now = new Date().getTime();
+            const timeLeft = launchDate - now;
+
+            const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+            document.getElementById('days').textContent = days.toString().padStart(2, '0');
+            document.getElementById('hours').textContent = hours.toString().padStart(2, '0');
+            document.getElementById('minutes').textContent = minutes.toString().padStart(2, '0');
+            document.getElementById('seconds').textContent = seconds.toString().padStart(2, '0');
+
+            if (timeLeft < 0) {
+                clearInterval(countdownInterval);
+                document.getElementById('countdown').innerHTML = '<p>WE HAVE LAUNCHED!</p>';
+            }
+        }
+        updateCountdown();
+        const countdownInterval = setInterval(updateCountdown, 1000);
+
+        // Three.js 3D Scene
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Starry Background
+        const starGeometry = new THREE.BufferGeometry();
+        const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.1 });
+        const stars = new Float32Array(10000 * 3);
+        for (let i = 0; i < 10000; i++) {
+            stars[i * 3] = (Math.random() - 0.5) * 2000;
+            stars[i * 3 + 1] = (Math.random() - 0.5) * 2000;
+            stars[i * 3 + 2] = (Math.random() - 0.5) * 2000;
+        }
+        starGeometry.setAttribute('position', new THREE.BufferAttribute(stars, 3));
+        const starField = new THREE.Points(starGeometry, starMaterial);
+        scene.add(starField);
+
+        // Glowing Orb
+        const orbGeometry = new THREE.SphereGeometry(5, 32, 32);
+        const orbMaterial = new THREE.MeshBasicMaterial({
+            color: 0xff00ff,
+            wireframe: true,
+            transparent: true,
+            opacity: 0.5
+        });
+        const orb = new THREE.Mesh(orbGeometry, orbMaterial);
+        scene.add(orb);
+
+        // Ambient Particles
+        const particleGeometry = new THREE.BufferGeometry();
+        const particleMaterial = new THREE.PointsMaterial({
+            color: 0x00ffff,
+            size: 0.2,
+            transparent: true,
+            opacity: 0.8
+        });
+        const particles = new Float32Array(1000 * 3);
+        for (let i = 0; i < 1000; i++) {
+            particles[i * 3] = (Math.random() - 0.5) * 100;
+            particles[i * 3 + 1] = (Math.random() - 0.5) * 100;
+            particles[i * 3 + 2] = (Math.random() - 0.5) * 100;
+        }
+        particleGeometry.setAttribute('position', new THREE.BufferAttribute(particles, 3));
+        const particleSystem = new THREE.Points(particleGeometry, particleMaterial);
+        scene.add(particleSystem);
+
+        camera.position.z = 30;
+
+        function animate() {
+            requestAnimationFrame(animate);
+            orb.rotation.y += 0.01;
+            particleSystem.rotation.y += 0.005;
+            starField.rotation.y += 0.002;
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        
+        // Handle Window Resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
